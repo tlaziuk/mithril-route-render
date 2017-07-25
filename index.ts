@@ -43,8 +43,8 @@ export async function routeRender(
     routes: RouteDefs,
     path: string,
     defaultPath: string = path,
+    params: { [_: string]: any } = {},
 ): Promise<string> {
-    const params: { [_: string]: any } = {};
     const pathname = parsePath(path, params, params);
     // tslint:disable-next-line:forin
     for (const route in routes) {
@@ -81,7 +81,7 @@ export async function routeRender(
         }
     }
     if (path !== defaultPath) {
-        return await routeRender(routes, defaultPath);
+        return await routeRender(routes, defaultPath, defaultPath, params);
     }
     throw new Error(`Could not resolve route '${path}'`);
 }
