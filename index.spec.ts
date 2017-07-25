@@ -3,13 +3,15 @@ import {
 } from "chai";
 
 import {
+    SinonSpy,
     spy,
     stub,
-    SinonSpy,
 } from "sinon";
 
 import {
+    ClassComponent,
     Component,
+    FactoryComponent,
     RouteDefs,
     RouteResolver,
 } from "mithril";
@@ -44,9 +46,46 @@ describe(routeRender.name, () => {
         expect(view.called).to.be.equal(true);
     });
     describe(`ComponentTypes`, () => {
-        it(`should render Component route`);
-        it(`should render FactoryComponent route`);
-        it(`should render ClassComponent route`);
+        it(`should render Component route`, async () => {
+            const view = spy(() => `test`) as Component<any, any>["view"] & SinonSpy;
+            const cmp = {
+                view,
+            } as Component<any, any>;
+            const routes = {
+                "/": cmp,
+            } as RouteDefs;
+            expect(await routeRender(routes, "/")).to.be.a("string");
+            expect(view.called).to.be.equal(true);
+            expect(view.firstCall.args[0]).to.be.a("object");
+        });
+        it(`should render FactoryComponent route`, async () => {
+            const view = spy(() => `test`) as Component<any, any>["view"] & SinonSpy;
+            const cmp = () => {
+                return {
+                    view,
+                } as Component<any, any>;
+            };
+            const routes = {
+                "/": cmp,
+            } as RouteDefs;
+            expect(await routeRender(routes, "/")).to.be.a("string");
+            expect(view.called).to.be.equal(true);
+            expect(view.firstCall.args[0]).to.be.a("object");
+        });
+        it(`should render ClassComponent route`, async () => {
+            const view = spy(() => `test`) as ClassComponent<any>["view"] & SinonSpy;
+            // tslint:disable-next-line:class-name
+            class cmp implements ClassComponent<any> {
+                public view: any;
+            }
+            cmp.prototype.view = view;
+            const routes = {
+                "/": cmp,
+            } as RouteDefs;
+            expect(await routeRender(routes, "/")).to.be.a("string");
+            expect(view.called).to.be.equal(true);
+            expect(view.firstCall.args[0]).to.be.a("object");
+        });
     });
     describe(`RouteResolver`, () => {
         it(`should the payload have proper 'this' type`);
