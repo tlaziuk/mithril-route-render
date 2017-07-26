@@ -2,8 +2,11 @@
 /// <reference path="./types/mithril.d.ts" />
 
 import {
+    Attributes,
     ComponentTypes,
+    Lifecycle,
     RouteDefs,
+    RouteResolver,
 } from "mithril";
 
 import * as parseQueryString from "mithril/querystring/parse";
@@ -39,6 +42,10 @@ function parsePath(
     return path.slice(0, pathEnd);
 }
 
+function isRouteResolver(thing: any): thing is RouteResolver<Attributes, Lifecycle<Attributes, {}>> {
+    return thing && [typeof thing.onmatch, typeof thing.render].indexOf("function") >= 0;
+}
+
 export async function routeRender(
     routes: RouteDefs,
     path: string,
@@ -66,7 +73,7 @@ export async function routeRender(
             const m = await import("mithril/render/hyperscript");
             if (isComponentType(payload)) {
                 return await mithrilRender(m(payload, params));
-            } else {
+            } else if (isRouteResolver(payload)) {
                 let component: ComponentTypes<any, any> = undefined as any;
                 if (typeof payload.onmatch === "function") {
                     const cmp = await payload.onmatch(params, path);
@@ -76,7 +83,11 @@ export async function routeRender(
                 }
                 if (typeof payload.render === "function") {
                     return await mithrilRender(payload.render(m(component || "div", params)));
+                } else {
+                    return await mithrilRender(component, { attrs: params });
                 }
+            } else {
+                throw new Error(`Could not resolve payload '${payload}'`);
             }
         }
     }

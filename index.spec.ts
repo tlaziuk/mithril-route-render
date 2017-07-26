@@ -14,6 +14,7 @@ import {
     FactoryComponent,
     RouteDefs,
     RouteResolver,
+    Vnode,
 } from "mithril";
 
 import * as m from "mithril/render/hyperscript";
@@ -88,12 +89,110 @@ describe(routeRender.name, () => {
         });
     });
     describe(`RouteResolver`, () => {
-        it(`should the payload have proper 'this' type`);
-        it(`should execute onmatch`);
-        it(`should execute render`);
-        it(`should execute payload before render`);
-        it(`should render component from onmatch with route`);
-        it(`should render component from onmatch without route`);
+        let view: Component<any, any>["view"] & SinonSpy;
+        let onmatch: RouteResolver<any, any>["onmatch"] & SinonSpy;
+        let onmatchVoid: RouteResolver<any, any>["onmatch"] & SinonSpy;
+        let render: RouteResolver<any, any>["render"] & SinonSpy;
+        let resolver: RouteResolver<any, any>;
+        let resolverVoid: RouteResolver<any, any>;
+        let resolverOnmatch: RouteResolver<any, any>;
+        let resolverOnmatchVoid: RouteResolver<any, any>;
+        let resolverRender: RouteResolver<any, any>;
+        let resolverEmpty: RouteResolver<any, any>;
+        let cmp: Component<any, any>;
+        let routes: RouteDefs;
+        beforeEach(() => {
+            view = spy(() => `test`);
+            cmp = {
+                view,
+            };
+            onmatch = spy(async (args: any, path: string) => await cmp);
+            onmatchVoid = spy(async (args: any, path: string) => await undefined);
+            render = spy((vnode: Vnode<any, any>) => vnode);
+            resolver = {
+                onmatch,
+                render,
+            };
+            resolverVoid = {
+                onmatch: onmatchVoid,
+                render,
+            };
+            resolverOnmatch = {
+                onmatch,
+            };
+            resolverOnmatchVoid = {
+                onmatch: onmatchVoid,
+            };
+            resolverRender = {
+                render,
+            };
+            resolverEmpty = {};
+            // tslint:disable:object-literal-sort-keys
+            routes = {
+                "/": resolver,
+                "/empty": resolverEmpty,
+                "/onmatch": resolverOnmatch,
+                "/onmatch-void": resolverOnmatchVoid,
+                "/render": resolverRender,
+                "/void": resolverVoid,
+                "/:test": resolver,
+                "/:test...": resolver,
+            };
+            // tslint:enable:object-literal-sort-keys
+        });
+        it(`should execute onmatch`, async () => {
+            await routeRender(routes, "/onmatch");
+            expect(onmatch.called).to.be.equal(true);
+        });
+        it(`should execute render`, async () => {
+            await routeRender(routes, "/render");
+            expect(render.called).to.be.equal(true);
+        });
+        it(`should execute payload before render`, async () => {
+            await routeRender(routes, "/");
+            expect(onmatch.called).to.be.equal(true);
+            expect(render.called).to.be.equal(true);
+            expect(onmatch.calledBefore(render)).to.be.equal(true);
+        });
+        it(`should render component from onmatch with render`, async () => {
+            expect(await routeRender(routes, "/")).to.be.a("string");
+            expect(onmatch.called).to.be.equal(true);
+            expect(render.called).to.be.equal(true);
+        });
+        it(`should render component from onmatch without render`, async () => {
+            expect(await routeRender(routes, "/onmatch")).to.be.a("string");
+            expect(onmatch.called).to.be.equal(true);
+            expect(render.called).to.be.equal(false);
+        });
+        it(`should render void onmatch with render`, async () => {
+            expect(await routeRender(routes, "/void")).to.be.a("string");
+            expect(onmatchVoid.called).to.be.equal(true);
+            expect(render.called).to.be.equal(true);
+        });
+        it(`should render void onmatch without render`, async () => {
+            expect(await routeRender(routes, "/onmatch-void")).to.be.a("string").equal("");
+            expect(onmatchVoid.called).to.be.equal(true);
+            expect(render.called).to.be.equal(false);
+        });
+        it(`should render empty payload throw an Error`, async () => {
+            const catchSpy = spy();
+            await routeRender(routes, "/empty").catch(catchSpy);
+            expect(catchSpy.called).to.be.equal(true);
+            expect(catchSpy.firstCall.args[0]).to.be.instanceOf(Error);
+        });
+        it(`should render component from onmatch without render`, async () => {
+            expect(await routeRender(routes, "/onmatch")).to.be.a("string");
+            expect(onmatch.called).to.be.equal(true);
+            expect(render.called).to.be.equal(false);
+        });
+        it(`should the payload have proper 'this' type`, async () => {
+            await routeRender(routes, "/");
+            expect(onmatch.firstCall.thisValue).to.be.equal(resolver);
+            expect(render.firstCall.thisValue).to.be.equal(resolver);
+            (resolver as any).test = `test`;
+            expect(onmatch.firstCall.thisValue).to.have.property("test").equal(`test`);
+            expect(render.firstCall.thisValue).to.have.property("test").equal(`test`);
+        });
     });
     describe(`paths`, () => {
         let view: Component<any, any>["view"] & SinonSpy;
@@ -137,6 +236,7 @@ describe(routeRender.name, () => {
             await routeRender(routes, "/resolver", void 0, attrs);
             expect(onmatch.firstCall.args[0]).to.be.equal(attrs);
             expect(render.firstCall.args[0].attrs).to.be.equal(attrs);
+            expect(onmatch.firstCall.args[1]).to.be.equal("/resolver");
         });
         it(`should get params from hash route`, async () => {
             await routeRender(routes, "/cmp#attr=val");
@@ -157,6 +257,12 @@ describe(routeRender.name, () => {
         it(`should get params from variadic route`, async () => {
             await routeRender(routes, "/cmp/val/val");
             expect(view.firstCall.args[0].attrs).to.be.eql({ test: "val/val" });
+        });
+        it(`should RouteResolver get params from variadic route, hash and query`, async () => {
+            await routeRender(routes, "/resolver/abc/def?query=val#hash=val");
+            expect(onmatch.firstCall.args[0]).to.be.eql({ test: "abc/def", query: "val", hash: "val" });
+            expect(onmatch.firstCall.args[0]).to.be.eql({ test: "abc/def", query: "val", hash: "val" });
+            expect(onmatch.firstCall.args[1]).to.be.equal("/resolver/abc/def?query=val#hash=val");
         });
     });
 });
