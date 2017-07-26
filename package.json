@@ -1,6 +1,6 @@
 {
   "name": "mithril-route-render",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "render mithril.js route definitions on the server",
   "main": "index.js",
   "scripts": {
