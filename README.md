@@ -7,6 +7,7 @@
 [![peerDependencies Status](https://david-dm.org/tlaziuk/mithril-route-render/peer-status.svg)](https://david-dm.org/tlaziuk/mithril-route-render?type=peer)
 [![npm version](https://badge.fury.io/js/mithril-route-render.svg)](https://badge.fury.io/js/mithril-route-render)
 [![downloads](https://img.shields.io/npm/dm/mithril-route-render.svg)](https://www.npmjs.com/package/mithril-route-render)
+[![license](https://img.shields.io/npm/l/mithril-route-render.svg)](https://www.npmjs.com/package/mithril-route-render)
 
 use mithril routes with express
 
