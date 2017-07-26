@@ -19,7 +19,7 @@ import mithrilRender, {
 function parsePath(
     path: string,
     queryData?: { [_: string]: any },
-    hashData: typeof queryData = queryData,
+    hashData?: { [_: string]: any },
 ): string {
     const queryIndex = path.indexOf("?");
     const hashIndex = path.indexOf("#");
