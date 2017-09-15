@@ -28,9 +28,12 @@
     "url": "https://github.com/tlaziuk/mithril-route-render.git"
   },
   "keywords": [
+    "isomorphic",
     "mithril",
+    "mithril.js",
     "node",
-    "isomorphic"
+    "render",
+    "route"
   ],
   "author": "Tomek Łaziuk <tlaziuk@gmail.com>",
   "license": "MIT",
