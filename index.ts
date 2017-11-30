@@ -1,6 +1,3 @@
-// tslint:disable-next-line:no-reference
-/// <reference path="./types/mithril.d.ts" />
-
 import {
     Attributes,
     ComponentTypes,
@@ -9,7 +6,11 @@ import {
     RouteResolver,
 } from "mithril";
 
+// @ts-ignore
 import * as parseQueryString from "mithril/querystring/parse";
+
+// @ts-ignore
+import * as m from "mithril/render/hyperscript";
 
 import mithrilRender, {
     isComponentType,
@@ -69,8 +70,6 @@ export async function routeRender(
                 params[key.replace(/:|\./g, "")] = decodeURIComponent(value);
             }
             const payload = routes[route];
-            // tslint:disable-next-line:whitespace
-            const m = await import("mithril/render/hyperscript");
             if (isComponentType(payload)) {
                 return await mithrilRender(m(payload, params));
             } else if (isRouteResolver(payload)) {

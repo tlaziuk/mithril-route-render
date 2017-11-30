@@ -17,6 +17,7 @@ import {
     Vnode,
 } from "mithril";
 
+// @ts-ignore
 import * as m from "mithril/render/hyperscript";
 
 import routeRender from "./index";
@@ -26,7 +27,7 @@ describe(routeRender.name, () => {
         expect(routeRender).to.be.a(`function`);
     });
     it(`should return Promise`, () => {
-        expect(routeRender({ "": () => `` }, "")).to.be.instanceOf(Promise);
+        expect(routeRender({ "": () => "" } as any, "")).to.be.instanceOf(Promise);
     });
     it(`should throw error when no route has been found`, async () => {
         const catchSpy = stub();
